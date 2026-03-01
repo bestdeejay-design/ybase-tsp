@@ -1,0 +1,13 @@
+{
+  "name": "yp-parser",
+  "version": "1.0.0",
+  "description": "YP.RU parser using Puppeteer",
+  "main": "parser.js",
+  "scripts": {
+    "parse": "node parser.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0",
+    "pg": "^8.11.0"
+  }
+}
