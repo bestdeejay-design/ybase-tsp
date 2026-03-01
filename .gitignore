@@ -1,0 +1,24 @@
+# Environment
+.env
+
+# Dependencies
+/vendor/
+composer.lock
+
+# Logs
+/logs/*.log
+/logs/*.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+postgres_data/
