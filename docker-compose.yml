@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yell-parser-php
+    volumes:
+      - ./src:/var/www/src
+      - ./templates:/var/www/templates
+      - ./public:/var/www/public
+      - ./vendor:/var/www/vendor
+      - ./logs:/var/www/logs
+      - ./composer.json:/var/www/composer.json
+    working_dir: /var/www
+    depends_on:
+      - postgres
+    networks:
+      - yell-network
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=yell_parser
+      - DB_USER=parser_user
+      - DB_PASSWORD=parser_pass
+    command: php-fpm
+    stdin_open: true
+    tty: true
+
+  web:
+    image: nginx:alpine
+    container_name: yell-parser-web
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./public:/var/www/public:ro
+      - ./templates:/var/www/templates:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks:
+      - yell-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: yell-parser-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: yell_parser
+      POSTGRES_USER: parser_user
+      POSTGRES_PASSWORD: parser_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - yell-network
+
+  adminer:
+    image: adminer:latest
+    container_name: yell-parser-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - yell-network
+
+  puppeteer:
+    build:
+      context: ./puppeteer-parser
+      dockerfile: Dockerfile
+    container_name: yell-parser-puppeteer
+    depends_on:
+      - postgres
+    networks:
+      - yell-network
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=yell_parser
+      - DB_USER=parser_user
+      - DB_PASSWORD=parser_pass
+      - CITY=uhta
+      - CATEGORY=kafe
+      - LIMIT=10
+
+volumes:
+  postgres_data:
+
+networks:
+  yell-network:
+    driver: bridge
